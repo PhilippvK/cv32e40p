@@ -1609,7 +1609,7 @@ module cv32e40p_decoder
               illegal_insn_o    = 1'b1;
             end
           end
-        end else if (COREV_PULP) begin   // cv.beqimm and cv.bneimm 
+        end else if (COREV_PULP) begin   // cv.beqimm and cv.bneimm
           ctrl_transfer_target_mux_sel_o = JT_COND;
           ctrl_transfer_insn             = BRANCH_COND;
           alu_op_c_mux_sel_o             = OP_C_JT;
@@ -1654,6 +1654,23 @@ module cv32e40p_decoder
                 2'b01  : data_type_o = 2'b01; // SH
                 default: data_type_o = 2'b00; // SW
               endcase
+            end
+            3'b011 : begin // mnn.pair_extract
+              // v8i4 -> v2i16 unpack:
+              regfile_alu_we      = 1'b1;
+              alu_en              = 1'b1;             // default
+              alu_operator_o      = ALU_PEXT;         // custom opcode
+
+              // enable rs1 as operand a
+              rega_used_o         = 1'b1;             // rs1 is used
+              alu_op_a_mux_sel_o  = OP_A_REGA_OR_FWD; // default behavior
+              // select immediate as operand b
+              alu_op_b_mux_sel_o  = OP_B_IMM;
+              imm_b_mux_sel_o     = IMMB_I;           // imm_i_type 31:20 - default
+
+              // Enable write back to RD
+              regc_used_o           = 1'b1;
+              regc_mux_o            = REGC_RD;
             end
 
             3'b011 : begin // Plane A
@@ -2029,7 +2046,7 @@ module cv32e40p_decoder
               bmask_a_mux_o       = BMASK_A_S3;
               bmask_b_mux_o       = BMASK_B_S2;
               alu_op_b_mux_sel_o  = OP_B_IMM;
-     
+
               unique case ({instr_rdata_i[31:30], instr_rdata_i[12]})
                 {2'b00, 1'b0}: begin                                       // cv.extract
                   alu_operator_o  = ALU_BEXT;

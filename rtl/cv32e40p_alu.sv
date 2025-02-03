@@ -917,6 +917,49 @@ module cv32e40p_alu
   );
 
   ////////////////////////////////////////////////////////
+  //  PAIR EXTRACT
+  ///////////////////////////////////////////////////////
+
+  logic [31:0] packed_v2i16;
+  logic  [1:0] pair_select;
+  logic  [3:0] lower;
+  logic  [3:0] upper;
+
+  always_comb begin
+    if (operator_i == ALU_PEXT) begin
+      
+      pair_select = operand_b_i[1:0];
+
+      unique case (pair_select)
+        2'b00: begin
+          lower = operand_a_i[3:0];
+          upper = operand_a_i[7:4];
+        end
+        2'b01: begin
+          lower = operand_a_i[11:8];
+          upper = operand_a_i[15:12];
+        end
+        2'b10: begin
+          lower = operand_a_i[19:16];
+          upper = operand_a_i[23:20];
+        end
+        2'b11: begin
+          lower = operand_a_i[27:24];
+          upper = operand_a_i[31:28];
+        end
+        default: begin
+          lower = 4'b0;
+          upper = 4'b0;
+        end
+      endcase
+
+      // signextend to 16 bit
+      packed_v2i16[15:0] = { { 12{lower[3]} }, lower};
+      packed_v2i16[31:16] = { { 12{upper[3]} }, upper};
+    end
+  end
+
+  ////////////////////////////////////////////////////////
   //   ____                 _ _     __  __              //
   //  |  _ \ ___  ___ _   _| | |_  |  \/  |_   ___  __  //
   //  | |_) / _ \/ __| | | | | __| | |\/| | | | \ \/ /  //
@@ -976,6 +1019,9 @@ module cv32e40p_alu
 
       // Division Unit Commands
       ALU_DIV, ALU_DIVU, ALU_REM, ALU_REMU: result_o = result_div;
+
+      // Custom Pair Extract v8i4 -> v2i16
+      ALU_PEXT: result_o = packed_v2i16;
 
       default: ;  // default case to suppress unique warning
     endcase

@@ -140,6 +140,8 @@ package cv32e40p_pkg;
 
     // Insert/extract
     ALU_INS = 7'b0101101,
+    ALU_PEXT = 7'b0111100,
+
 
     // min/max
     ALU_MIN  = 7'b0010000,
