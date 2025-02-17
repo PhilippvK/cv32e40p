@@ -1655,7 +1655,7 @@ module cv32e40p_decoder
                 default: data_type_o = 2'b00; // SW
               endcase
             end
-            3'b011 : begin // mnn.pair_extract
+            3'b111 : begin // mnn.pair_extract
               // v8i4 -> v2i16 unpack:
               regfile_alu_we      = 1'b1;
               alu_en              = 1'b1;             // default
